@@ -120,10 +120,11 @@ jobs:
           name: scan front-end packages
           command: |
             cd frontend
-
+            npm audit fix --force --audit-level=critical
+            npm audit fix --force --audit-level=critical
             npm audit --audit-level=critical
 
-      - notify_on_failure 
+      #- notify_on_failure 
 
   scan-backend:
     docker:

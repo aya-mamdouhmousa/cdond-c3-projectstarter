@@ -64,7 +64,7 @@ jobs:
           command: |
               cd frontend
               npm install     
-              
+
       - run:
           name: Run frontend unit tests
           command: |
@@ -90,6 +90,48 @@ jobs:
           command: |
              cd backend
              npm run test
+
+            
+  scan-frontend:
+    docker:
+      - image: cimg/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: 
+           - frontend-deps-{{ checksum "frontend/package-lock.json" }}
+
+      - run: 
+          name: Install dependencies
+          command: |
+              cd frontend
+              npm install     
+      - run:
+          name: scan front-end packages
+          command: |
+            cd frontend
+            npm audit --audit-level=critical
+
+  scan-backend:
+    docker:
+      - image: cimg/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: 
+           - backend-deps-{{ checksum "backend/package-lock.json" }}
+
+      - run: 
+          name: Install dependencies
+          command: |
+              cd backend
+              npm install     
+      - run:
+          name: scan front-end packages
+          command: |
+            cd backend
+            npm audit --audit-level=critical
+
 workflows:
   default:
     jobs:
@@ -98,4 +140,8 @@ workflows:
       - test-frontend:
           requires: [build-frontend]
       - test-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
+      - scan-backend:
           requires: [build-backend]      

@@ -1,5 +1,15 @@
 version: 2.1
 
+orbs:
+  slack: circleci/slack@4.10.1
+
+commands:
+    notify_on_failure:
+        steps:
+        - slack/notify:
+            event: fail
+            channel: cicd-pipeline
+            template: basic_fail_1
 jobs:
   build-frontend:
     docker:
@@ -110,7 +120,10 @@ jobs:
           name: scan front-end packages
           command: |
             cd frontend
+
             npm audit --audit-level=critical
+
+      - notify_on_failure 
 
   scan-backend:
     docker:
@@ -127,9 +140,11 @@ jobs:
               cd backend
               npm install     
       - run:
-          name: scan front-end packages
+          name: scan back-end packages
           command: |
             cd backend
+            npm audit fix --force --audit-level=critical
+            npm audit fix --force --audit-level=critical
             npm audit --audit-level=critical
 
 workflows:

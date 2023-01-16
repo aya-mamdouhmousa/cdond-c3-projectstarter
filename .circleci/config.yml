@@ -47,3 +47,9 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-deps-{{ checksum "backend/package-lock.json" }}
+
+workflows:
+  default:
+    jobs:
+      - build-frontend
+      - build-backend

@@ -369,7 +369,7 @@ jobs:
               cd backend
               pwd
               npm run build
-              tar -czf artifact.tar.gz .
+              tar -czvf artifact.tar.gz dist/* package/*
               ls -larth
               # Copy the files to the deploy role files folder to prepare for deploying it via ansible
               cd ..

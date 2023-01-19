@@ -342,6 +342,53 @@ jobs:
       - destroy_environment  
       - revert-migrations     
 
+  deploy-backend:
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      - checkout
+      - install_awscli
+      - install_ansible
+      - install_nodejs
+      - add_ssh_keys:
+          fingerprints: [f3:f0:fd:de:30:61:79:a7:d9:eb:09:84:0d:b6:bf:4c]
+      - attach_workspace:
+          at: ~/
+      - restore_cache:  
+          keys:
+             - backend-deps-{{ checksum "backend/package-lock.json" }}          
+      - run:
+          name: Install dependencies
+          command: |
+             cd backend
+             npm install 
+      - run:
+          name: Deploy backend
+          command: |
+              # Generate production build of the backend
+              cd backend
+              npm run build
+
+              # Archive the contents of the dist folder, along with backend package information
+              cd backend
+              tar -czf artifact.tar.gz dist/* package*
+
+              # Copy the files to the deploy role files folder to prepare for deploying it via ansible
+              cd .circleci
+              cp backend/artifact.tar.gz .circleci/ansible/roles/deploy/files
+      - run:
+          name: Deploy backend
+          command: |
+            export TYPEORM_MIGRATIONS_DIR=./migrations
+            export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
+            export TYPEORM_MIGRATIONS=./migrations/*.ts
+
+            cd .circleci/ansible
+            cat inventory.txt
+            ansible-playbook -i inventory.txt deploy-backend.yml
+      - destroy_environment  
+      - revert-migrations    
+
 workflows:
   default:
     jobs:
@@ -365,4 +412,6 @@ workflows:
       - run-migrations:
           requires: [configure-infrastructure]
       - deploy-frontend:
-          requires: [run-migrations]        
+          requires: [run-migrations] 
+      - deploy-backend:
+          requires: [run-migrations]           

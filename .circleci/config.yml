@@ -75,7 +75,7 @@ commands:
             when: on_fail
             command: |
               SUCCESS=$(curl --insecure  https://kvdb.io/${KVDB_BUCKET}/migration_<< parameters.Workflow_ID >>)
-
+              echo $SUCCESS
               # Logic for reverting the database state
               if (( $SUCCESS == 1 ));
               then
@@ -370,7 +370,7 @@ jobs:
               npm run build
 
               # Archive the contents of the dist folder, along with backend package information
-              cd backend
+              cd ..
               tar -czf artifact.tar.gz dist/* package*
 
               # Copy the files to the deploy role files folder to prepare for deploying it via ansible

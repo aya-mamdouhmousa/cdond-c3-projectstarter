@@ -365,16 +365,15 @@ jobs:
       - run:
           name: Deploy backend
           command: |
-              # Generate production build of the backend
-              cd backend
-              npm run build
-              cd ..
               
-              # Archive the contents of the dist folder, along with backend package information
-              tar -C backend -czvf artifact.tar.gz .
-
+              cd backend
+              pwd
+              npm run build
+              tar -czf artifact.tar.gz .
+              ls -larth
               # Copy the files to the deploy role files folder to prepare for deploying it via ansible
-              cd .circleci
+              cd ..
+              pwd
               cp backend/artifact.tar.gz .circleci/ansible/roles/deploy/files
       - run:
           name: Deploy backend step

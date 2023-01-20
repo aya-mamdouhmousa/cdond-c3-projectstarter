@@ -77,12 +77,12 @@ commands:
               SUCCESS=$(curl --insecure  https://kvdb.io/${KVDB_BUCKET}/migration_<< parameters.Workflow_ID >>)
               echo $SUCCESS
               # Logic for reverting the database state
-              if (( $SUCCESS == 1 ));
-              then
+              #if (( $SUCCESS == 1 ));
+              #then
                 cd ~/project/backend
                 npm install
                 npm run migrations:revert
-              fi
+              #fi
 jobs:
   build-frontend:
     docker:
@@ -220,7 +220,17 @@ jobs:
             npm audit fix --force --audit-level=critical
             npm audit fix --force --audit-level=critical
             npm audit --audit-level=critical
-
+  revert:
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      - checkout  
+      - install_awscli
+      - run :
+          name : fail
+          command : |
+            return 1
+      - revert-migrations 
   deploy-infrastructure:
     docker:
       - image: cimg/python:3.10
@@ -469,11 +479,13 @@ jobs:
                 aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
                 aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
               fi
-              
+
+
 
 workflows:
   default:
     jobs:
+     - revert
       # - build-frontend
       # - build-backend
       # - test-frontend:
@@ -484,22 +496,22 @@ workflows:
       #     requires: [build-frontend]
       # - scan-backend:
       #     requires: [build-backend]
-      - deploy-infrastructure: 
-          # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-          filters:
-            branches:
-              only: [master]
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
-      - run-migrations:
-          requires: [configure-infrastructure]
-      - deploy-frontend:
-          requires: [run-migrations] 
-      - deploy-backend:
-          requires: [run-migrations]
-      - smoke-test:
-          requires: [deploy-backend, deploy-frontend]
-      - cloudfront-update:
-          requires: [smoke-test]   
-      - cleanup:
-            requires: [cloudfront-update]                    
+      # - deploy-infrastructure: 
+      #     # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+      #     filters:
+      #       branches:
+      #         only: [master]
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
+      # - deploy-frontend:
+      #     requires: [run-migrations] 
+      # - deploy-backend:
+      #     requires: [run-migrations]
+      # - smoke-test:
+      #     requires: [deploy-backend, deploy-frontend]
+      # - cloudfront-update:
+      #     requires: [smoke-test]   
+      # - cleanup:
+      #       requires: [cloudfront-update]                    
